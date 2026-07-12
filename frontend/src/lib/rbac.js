@@ -14,7 +14,15 @@ export const canAccess = (role, path) => {
   return item ? item.roles.includes(role) : false;
 };
 
+const ROLE_DEFAULT_ROUTE = {
+  FLEET_MANAGER: "/app/dashboard",
+  DRIVER: "/app/trips",
+  SAFETY_OFFICER: "/app/drivers",
+  FINANCIAL_ANALYST: "/app/dashboard",
+};
+
 export const defaultRouteFor = (role) => {
+  if (ROLE_DEFAULT_ROUTE[role]) return ROLE_DEFAULT_ROUTE[role];
   const first = NAV_ITEMS.find((n) => n.roles.includes(role));
   return first ? first.path : "/app/dashboard";
 };
