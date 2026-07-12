@@ -44,3 +44,16 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[userenv]
+
+[userenv.shared]
+REACT_APP_BACKEND_URL = ""
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 8001
+externalPort = 3001

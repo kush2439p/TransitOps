@@ -20,7 +20,7 @@ public class User {
 
     @Id
     @GeneratedValue
-    @Column(columnDefinition = "BINARY(16)", updatable = false, nullable = false)
+    @Column(updatable = false, nullable = false)
     private UUID id;
 
     @Column(nullable = false, length = 120)
