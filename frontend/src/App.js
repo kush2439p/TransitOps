@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { StoreProvider, useStore } from "@/lib/store";
 import { defaultRouteFor } from "@/lib/rbac";
 import AppLayout from "@/components/layout/AppLayout";
+import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Vehicles from "@/pages/Vehicles";
@@ -13,9 +14,9 @@ import Maintenance from "@/pages/Maintenance";
 import Expenses from "@/pages/Expenses";
 import Reports from "@/pages/Reports";
 
-function RootRedirect() {
+function AppFallback() {
   const { user } = useStore();
-  return <Navigate to={user ? defaultRouteFor(user.role) : "/login"} replace />;
+  return <Navigate to={user ? defaultRouteFor(user.role) : "/"} replace />;
 }
 
 export default function App() {
@@ -23,7 +24,7 @@ export default function App() {
     <StoreProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/app" element={<AppLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
@@ -34,7 +35,7 @@ export default function App() {
             <Route path="expenses" element={<Expenses />} />
             <Route path="reports" element={<Reports />} />
           </Route>
-          <Route path="*" element={<RootRedirect />} />
+          <Route path="*" element={<AppFallback />} />
         </Routes>
       </BrowserRouter>
     </StoreProvider>
