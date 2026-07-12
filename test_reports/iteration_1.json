@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only E2E testing for TransitOps completed. 22/26 initial assertions passed; 3 were false positives (timing/test-setup), 1 real spec mismatch (Driver default route). Core flows all functional: login (4 demo cards + form), RBAC sidebar per role, dashboard KPIs+charts, vehicle CRUD + drawer + search, trip create/dispatch/complete with cargo overweight validation + odometer validation, maintenance open/close, fuel/expense logging, reports (4 charts) + CSV export, logout, localStorage persistence on refresh, safety officer suspend/reinstate. Backend not tested (not built - frontend-only per request).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Driver default route after signup/login", "issue": "Per spec, Driver should be redirected to /app/vehicles after signup/login. Currently defaultRouteFor(DRIVER) returns /app/dashboard because rbac.js NAV_ITEMS lists 'dashboard' first with DRIVER included. To match spec, reorder NAV_ITEMS or change defaultRouteFor to explicit map: DRIVER -> /app/vehicles.", "affected_selectors": ["nav-dashboard","nav-vehicles"]}
+    ],
+    "design_issues": [
+      {"screen": "Global (Recharts)", "issues": ["Multiple console warnings on every route render: 'The width(-1) and height(-1) of chart should be greater than 0'. Occurs because ResponsiveContainer is briefly measuring 0-sized parent. Consider explicit min-height on wrapper or use aspect. Non-blocking but noisy."]},
+      {"screen": "Trips.jsx (line ~200)", "issues": ["React hydration warning: '<span> cannot be a child of <option>' — likely coming from a dev tool wrapper injecting spans inside <option> elements in select dropdowns. Does not affect functionality but pollutes console."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Change Driver's default landing route to /app/vehicles (align with spec). Either reorder NAV_ITEMS so 'vehicles' precedes 'dashboard' for DRIVER, or hardcode role->path map in defaultRouteFor().",
+    "Optional: silence Recharts width/height warnings by giving chart containers an explicit min-height (they already have h-64/h-56 but ResponsiveContainer measures parent) or by rendering only after parent is measured."
+  ],
+  "critical_code_review_comments": [
+    "rbac.js defaultRouteFor is order-sensitive: any new NAV_ITEM prepended breaks role-specific defaults. Recommend explicit role->route map.",
+    "store.js load() shallow-merges from localStorage; if seed data changes across releases, old cached state may hide new fields — consider a schema version.",
+    "Trips.jsx CompleteTripModal: `valid` allows odometer==current; consider strict '>' to enforce forward motion (currently a vehicle with 0 odometer accepts 0 as final).",
+    "Sidebar/AppLayout Toaster is duplicated between Login.jsx and AppLayout.jsx (already noted in review). Fine but consider a single global mount.",
+    "All 8 KPI cards + charts render fine; only stale localStorage across tests can make selectors miss values momentarily — first-load timing."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "~96% (real bugs: 1 minor spec deviation)"},
+  "test_credentials": "manager@transitops.io / demo123 (and other 3 roles), all in /app/memory/test_credentials.md",
+  "seed_data_creation": "None; used demo login cards. Test cleared localStorage before run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "App is frontend-only (mock + localStorage). Always clear localStorage before starting a test run — completed trips/dispatched vehicles carry over and can empty the 'AVAILABLE' vehicle/driver dropdowns in Create Trip modal. Key testids used: demo-login-<ROLE>, nav-<key>, kpi-*, vehicle-row-*, register-vehicle-btn, save-vehicle-btn, create-trip-btn, trip-source, trip-destination, trip-cargo-weight, cargo-overweight-error, save-trip-btn, dispatch-<id>, complete-<id>, final-odometer-input, fuel-consumed-input, confirm-complete-btn, create-maintenance-btn, close-maint-<id>, add-fuel-btn, add-expense-btn, quick-save-btn, export-csv-btn, user-menu-toggle, logout-btn, switch-to-signup, signup-name-input, signup-submit-btn.",
+  "rca of the issue": "Driver default route bug: defaultRouteFor(role) in /app/frontend/src/lib/rbac.js returns the first NAV_ITEM containing the role. Since 'dashboard' is item[0] and includes DRIVER, driver logins/signups land on /app/dashboard. Spec expects /app/vehicles. Fix: explicit role map, e.g. { FLEET_MANAGER: '/app/dashboard', DRIVER: '/app/vehicles', SAFETY_OFFICER: '/app/drivers', FINANCIAL_ANALYST: '/app/dashboard' }."
+}
