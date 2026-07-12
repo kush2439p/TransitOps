@@ -1,0 +1,124 @@
+{
+  "theme": "dark",
+  "archetype": "The Performance Pro / High Contrast Logistics",
+  "typography": {
+    "font_families": {
+      "headings": "'Chivo', sans-serif",
+      "body": "'IBM Plex Sans', sans-serif",
+      "monospace": "'JetBrains Mono', monospace"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl tracking-tight font-bold",
+      "h2": "text-2xl sm:text-3xl tracking-tight font-semibold",
+      "h3": "text-xl sm:text-2xl font-medium",
+      "body": "text-base leading-relaxed",
+      "data_labels": "text-xs uppercase tracking-[0.2em] font-medium"
+    },
+    "rules": "Avoid Inter. Do not use 'bold' arbitrarily. Data/Numbers MUST use JetBrains Mono for strict alignment.",
+    "import_url": "https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  },
+  "colors": {
+    "background": {
+      "base": "#0A0A0A",
+      "surface": "#121212",
+      "surface_hover": "#1C1C1C"
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A1A1AA",
+      "muted": "#71717A"
+    },
+    "accent": {
+      "primary": "#FACC15",
+      "primary_hover": "#EAB308",
+      "secondary": "#38BDF8"
+    },
+    "status": {
+      "available": {
+        "bg": "bg-emerald-500/15",
+        "text": "text-emerald-400",
+        "border": "border-emerald-500/30"
+      },
+      "on_trip": {
+        "bg": "bg-blue-500/15",
+        "text": "text-blue-400",
+        "border": "border-blue-500/30"
+      },
+      "maintenance": {
+        "bg": "bg-amber-500/15",
+        "text": "text-amber-400",
+        "border": "border-amber-500/30"
+      },
+      "suspended": {
+        "bg": "bg-red-500/15",
+        "text": "text-red-400",
+        "border": "border-red-500/30"
+      },
+      "retired": {
+        "bg": "bg-gray-500/15",
+        "text": "text-gray-400",
+        "border": "border-gray-500/30"
+      }
+    },
+    "borders": {
+      "default": "border-white/10",
+      "focus": "ring-2 ring-[#FACC15] ring-offset-2 ring-offset-[#0A0A0A]"
+    }
+  },
+  "layouts": {
+    "dashboard_grid": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6",
+    "kanban_grid": "grid-cols-1 md:grid-cols-4 gap-4 items-start",
+    "spacing": "Generous spacing. p-6 or p-8 inside cards. Use gap-6 for macro layout.",
+    "borders_and_radius": "Soft borders (border-white/10). Rounded corners (rounded-xl for cards, rounded-2xl for main containers, rounded-full for pills/buttons)."
+  },
+  "components": {
+    "sidebar": "Collapsible left sidebar. bg-[#0A0A0A] border-r border-white/10. Active item uses text-[#FACC15] and a 2px left border of #FACC15.",
+    "top_bar": "Sticky header with backdrop-blur-xl bg-[#0A0A0A]/80 border-b border-white/10. Must not be fully transparent.",
+    "cards": "bg-[#121212] border border-white/10 rounded-xl shadow-lg transition-all hover:-translate-y-1 hover:border-white/20.",
+    "tables": "Dense rows. text-sm. Headers are text-xs uppercase text-zinc-500. Use JetBrains Mono for ID, License Plate, and Costs.",
+    "badges": "Pill shaped (rounded-full) px-3 py-1 text-xs font-medium border.",
+    "buttons": "Primary: bg-[#FACC15] text-black hover:bg-[#EAB308] font-semibold rounded-md. Secondary: bg-white/5 text-white hover:bg-white/10 border border-white/10.",
+    "charts": "Recharts inside cards. Use custom tooltips with dark bg-[#121212] and border-white/10. Colors: use primary accent and status colors."
+  },
+  "visual_enhancers": {
+    "noise": "Add a subtle SVG noise filter or simple dark grain to the background for an industrial tactile feel.",
+    "glow": "Use drop-shadow-[0_0_15px_rgba(250,204,21,0.15)] sparingly on active top-level metrics.",
+    "icons": "Use lucide-react with consistent stroke widths (strokeWidth={1.5})."
+  },
+  "motion": {
+    "hover": "transform -translate-y-[2px] transition-all duration-200 ease-out",
+    "page_load": "Staggered fade-up for dashboard cards using simple css animation.",
+    "sidebar": "Smooth width transition (300ms ease-in-out)"
+  },
+  "accessibility": {
+    "focus": "Visible focus states using the yellow accent color.",
+    "contrast": "Text must have sufficient contrast. Muted text should not drop below #71717A.",
+    "testing": "All interactive elements MUST include data-testid."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.pexels.com/photos/11053644/pexels-photo-11053644.jpeg",
+      "category": "login_background",
+      "description": "Large truck travels on a highway at dusk. Perfect for login/signup page full-bleed background with a dark overlay (bg-black/60)."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1626712211690-8de4fe30177c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHx0cnVjayUyMGRyaXZlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MzgzMTA4Mnww&ixlib=rb-4.1.0&q=85",
+      "category": "driver_avatar",
+      "description": "Driver portrait reflected in side mirror. Use for driver profiles or dummy avatars."
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1506863530036-1efeddceb993?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHdvbWFuJTIwcG9ydHJhaXQlMjBkYXJrfGVufDB8fHx8MTc4MzgzMTA4M3ww&ixlib=rb-4.1.0&q=85",
+      "category": "manager_avatar",
+      "description": "Professional woman in dark setting. Use for Safety Officer / Fleet Manager profile avatar."
+    }
+  ],
+  "instructions_to_main_agent": [
+    "Inject the Google Fonts import into index.html.",
+    "Add 'data-testid' to all buttons, links, inputs, and key metric cards.",
+    "Implement mock JSON data that covers all Roles (Fleet Manager, Driver, Safety Officer, Financial Analyst) and demonstrate RBAC in the sidebar.",
+    "Use standard HTML/Tailwind for the Kanban board structure to allow flexible dragging/states.",
+    "Use Recharts for Fuel Efficiency, Fleet Utilization, and Cost Trends charts. Strip out default light tooltips and replace with dark custom ones.",
+    "Use sonner for toast notifications (loading, success, error)."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": "Do not center align the app container. Create depth with z-index, subtle borders (border-white/10), and dark cards (bg-[#121212]). Add micro-animations on hover. Use generous padding (p-6/p-8). Do NOT use generic purple/blue SaaS gradients. Stick to the Industrial/Tactical color palette (#0A0A0A base, Yellow/Signal accents, JetBrains Mono for data)."
+}
