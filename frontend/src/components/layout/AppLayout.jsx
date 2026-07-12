@@ -7,9 +7,22 @@ import { canAccess, defaultRouteFor } from "@/lib/rbac";
 import { Toaster } from "sonner";
 
 export default function AppLayout() {
-  const { user } = useStore();
+  const { user, authLoading } = useStore();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A]">
+        <div className="text-center">
+          <div className="w-10 h-10 rounded-md bg-[#FACC15] flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <span className="text-black font-bold">TO</span>
+          </div>
+          <div className="text-zinc-400 text-sm font-mono-data">Restoring session…</div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/login" replace />;
 

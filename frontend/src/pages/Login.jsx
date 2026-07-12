@@ -4,45 +4,64 @@ import { useStore } from "@/lib/store";
 import { DEMO_USERS, ROLE_LABELS } from "@/lib/mockData";
 import { defaultRouteFor } from "@/lib/rbac";
 import { toast, Toaster } from "sonner";
-import { Truck, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Truck, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function Login() {
   const { login, signup } = useStore();
   const navigate = useNavigate();
   const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("manager@transitops.io");
-  const [password, setPassword] = useState("demo123");
+  const [password, setPassword] = useState("demo1234");
   const [name, setName] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    if (mode === "signup") {
-      if (!name.trim() || !email.trim()) {
-        toast.error("Name and email are required");
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        if (!name.trim() || !email.trim() || password.length < 8) {
+          toast.error("Name, email, and 8+ char password are required");
+          return;
+        }
+        const res = await signup(name.trim(), email.trim(), password, "DRIVER");
+        if (!res.ok) {
+          toast.error(res.error || "Signup failed");
+          return;
+        }
+        toast.success(`Welcome, ${res.user.name}. Signed up as Driver.`);
+        navigate(defaultRouteFor(res.user.role));
         return;
       }
-      const u = signup(name.trim(), email.trim());
-      toast.success(`Welcome, ${u.name}. Signed up as Driver.`);
-      navigate(defaultRouteFor(u.role));
-      return;
-    }
-    const u = login(email, password);
-    if (u) {
-      toast.success(`Signed in as ${ROLE_LABELS[u.role]}`);
-      navigate(defaultRouteFor(u.role));
-    } else {
-      toast.error("Invalid credentials. Try one of the demo accounts.");
+      const u = await login(email, password);
+      if (u) {
+        toast.success(`Signed in as ${ROLE_LABELS[u.role]}`);
+        navigate(defaultRouteFor(u.role));
+      } else {
+        toast.error("Invalid credentials. Try one of the demo accounts.");
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
-  const quickLogin = (u) => {
+  const quickLogin = async (u) => {
+    if (busy) return;
     setEmail(u.email);
     setPassword(u.password);
-    const r = login(u.email, u.password);
-    if (r) {
-      toast.success(`Signed in as ${ROLE_LABELS[r.role]}`);
-      navigate(defaultRouteFor(r.role));
+    setBusy(true);
+    try {
+      const r = await login(u.email, u.password);
+      if (r) {
+        toast.success(`Signed in as ${ROLE_LABELS[r.role]}`);
+        navigate(defaultRouteFor(r.role));
+      } else {
+        toast.error("Demo login failed — backend may be starting up.");
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -139,18 +158,25 @@ export default function Login() {
                 className="mt-1.5 w-full bg-[#121212] border border-white/10 rounded-md px-4 py-3 text-white focus-yellow"
               />
             </div>
-            {mode === "login" && (
+            {(mode === "login" || mode === "signup") && (
               <div>
                 <label className="text-xs uppercase tracking-wider text-zinc-500 flex items-center justify-between">
                   Password
-                  <button
-                    type="button"
-                    className="text-[#FACC15] normal-case tracking-normal text-xs hover:underline"
-                    onClick={() => toast.info("Password reset flow will be wired up with backend.")}
-                    data-testid="forgot-password-link"
-                  >
-                    Forgot password?
-                  </button>
+                  {mode === "login" && (
+                    <button
+                      type="button"
+                      className="text-[#FACC15] normal-case tracking-normal text-xs hover:underline"
+                      onClick={() => toast.info("Password reset flow will be wired up with backend.")}
+                      data-testid="forgot-password-link"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                  {mode === "signup" && (
+                    <span className="text-zinc-500 normal-case tracking-normal text-[10px]">
+                      min 8 characters
+                    </span>
+                  )}
                 </label>
                 <div className="relative mt-1.5">
                   <input
@@ -173,11 +199,18 @@ export default function Login() {
 
             <button
               type="submit"
+              disabled={busy}
               data-testid={mode === "login" ? "login-submit-btn" : "signup-submit-btn"}
-              className="group w-full inline-flex items-center justify-center gap-2 bg-[#FACC15] hover:bg-[#EAB308] text-black font-semibold rounded-md px-4 py-3 transition-colors"
+              className="group w-full inline-flex items-center justify-center gap-2 bg-[#FACC15] hover:bg-[#EAB308] disabled:opacity-60 disabled:cursor-not-allowed text-black font-semibold rounded-md px-4 py-3 transition-colors"
             >
-              {mode === "login" ? "Enter Console" : "Create account"}
-              <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
+              {busy ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : mode === "login" ? (
+                "Enter Console"
+              ) : (
+                "Create account"
+              )}
+              {!busy && <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />}
             </button>
           </form>
 

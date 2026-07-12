@@ -12,7 +12,7 @@ export const DEMO_USERS = [
     id: "u-1",
     name: "Marcus Okafor",
     email: "manager@transitops.io",
-    password: "demo123",
+    password: "demo1234",
     role: "FLEET_MANAGER",
     avatar:
       "https://images.unsplash.com/photo-1506863530036-1efeddceb993?crop=entropy&cs=srgb&fm=jpg&w=200",
@@ -21,7 +21,7 @@ export const DEMO_USERS = [
     id: "u-2",
     name: "Diego Ramírez",
     email: "driver@transitops.io",
-    password: "demo123",
+    password: "demo1234",
     role: "DRIVER",
     avatar:
       "https://images.unsplash.com/photo-1626712211690-8de4fe30177c?crop=entropy&cs=srgb&fm=jpg&w=200",
@@ -30,7 +30,7 @@ export const DEMO_USERS = [
     id: "u-3",
     name: "Ada Sinclair",
     email: "safety@transitops.io",
-    password: "demo123",
+    password: "demo1234",
     role: "SAFETY_OFFICER",
     avatar:
       "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=srgb&fm=jpg&w=200",
@@ -39,7 +39,7 @@ export const DEMO_USERS = [
     id: "u-4",
     name: "Priya Balan",
     email: "finance@transitops.io",
-    password: "demo123",
+    password: "demo1234",
     role: "FINANCIAL_ANALYST",
     avatar:
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=srgb&fm=jpg&w=200",

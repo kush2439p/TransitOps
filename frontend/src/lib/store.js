@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
-  DEMO_USERS,
   seedVehicles,
   seedDrivers,
   seedTrips,
@@ -8,9 +7,19 @@ import {
   seedFuelLogs,
   seedExpenses,
 } from "./mockData";
+import { authApi, setToken, clearToken, getToken } from "./api";
 
 const LS_KEY = "transitops.state.v1";
 const AUTH_KEY = "transitops.auth.v1";
+
+const ROLE_AVATARS = {
+  FLEET_MANAGER: "https://images.unsplash.com/photo-1506863530036-1efeddceb993?crop=entropy&cs=srgb&fm=jpg&w=200",
+  DRIVER: "https://images.unsplash.com/photo-1626712211690-8de4fe30177c?crop=entropy&cs=srgb&fm=jpg&w=200",
+  SAFETY_OFFICER: "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=srgb&fm=jpg&w=200",
+  FINANCIAL_ANALYST: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=srgb&fm=jpg&w=200",
+  ADMIN: "https://images.unsplash.com/photo-1506863530036-1efeddceb993?crop=entropy&cs=srgb&fm=jpg&w=200",
+};
+const decorate = (u) => (u ? { ...u, avatar: u.avatar || ROLE_AVATARS[u.role] } : null);
 
 const initialState = {
   vehicles: seedVehicles,
@@ -47,6 +56,25 @@ const uid = (prefix) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 export function StoreProvider({ children }) {
   const [state, setState] = useState(load);
   const [user, setUser] = useState(loadAuth);
+  // If we have a JWT but no cached user, we're about to restore session — hold rendering
+  const [authLoading, setAuthLoading] = useState(() => !!getToken() && !loadAuth());
+
+  // On mount: refresh user via /me if we have a token but no cached user
+  useEffect(() => {
+    const token = getToken();
+    if (token && !user) {
+      setAuthLoading(true);
+      authApi
+        .me()
+        .then((u) => setUser(decorate(u)))
+        .catch(() => {
+          clearToken();
+          setUser(null);
+        })
+        .finally(() => setAuthLoading(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     localStorage.setItem(LS_KEY, JSON.stringify(state));
@@ -57,31 +85,39 @@ export function StoreProvider({ children }) {
     else localStorage.removeItem(AUTH_KEY);
   }, [user]);
 
-  const login = useCallback((email, password) => {
-    const found = DEMO_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password,
-    );
-    if (found) {
-      const { password: _p, ...safe } = found;
-      setUser(safe);
-      return safe;
+  const login = useCallback(async (email, password) => {
+    try {
+      const res = await authApi.login(email, password);
+      setToken(res.token);
+      const u = decorate(res.user);
+      setUser(u);
+      return u;
+    } catch (err) {
+      return null;
     }
-    return null;
   }, []);
 
-  const signup = useCallback((name, email) => {
-    const newUser = {
-      id: uid("u"),
-      name,
-      email,
-      role: "DRIVER",
-      avatar: "https://images.unsplash.com/photo-1626712211690-8de4fe30177c?crop=entropy&cs=srgb&fm=jpg&w=200",
-    };
-    setUser(newUser);
-    return newUser;
+  const signup = useCallback(async (name, email, password, role = "DRIVER") => {
+    try {
+      await authApi.signup({ name, email, password, role });
+      const res = await authApi.login(email, password);
+      setToken(res.token);
+      const u = decorate(res.user);
+      setUser(u);
+      return { ok: true, user: u };
+    } catch (err) {
+      const msg =
+        err.response?.data?.details?.[0] ||
+        err.response?.data?.message ||
+        "Signup failed";
+      return { ok: false, error: msg };
+    }
   }, []);
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(() => {
+    clearToken();
+    setUser(null);
+  }, []);
 
   const resetData = useCallback(() => setState(initialState), []);
 
@@ -221,6 +257,7 @@ export function StoreProvider({ children }) {
   const value = {
     ...state,
     user,
+    authLoading,
     login,
     signup,
     logout,

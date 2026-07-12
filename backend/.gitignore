@@ -1,0 +1,30 @@
+# Secrets & local config
+.env
+*.env
+!.env.example
+application-local.properties
+application-secrets.properties
+
+# Build outputs
+target/
+build/
+out/
+*.jar
+*.war
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
