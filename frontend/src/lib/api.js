@@ -29,7 +29,7 @@ http.interceptors.response.use(
 
 export const authApi = {
   signup: (payload) => http.post("/auth/signup", payload).then((r) => r.data),
-  login: (email, password) => http.post("/auth/login", { email, password }).then((r) => r.data),
+  login: (email, password, role) => http.post("/auth/login", { email, password, role }).then((r) => r.data),
   me: () => http.get("/auth/me").then((r) => r.data),
   health: () => http.get("/health").then((r) => r.data),
 };

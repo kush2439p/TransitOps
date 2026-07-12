@@ -85,22 +85,25 @@ export function StoreProvider({ children }) {
     else localStorage.removeItem(AUTH_KEY);
   }, [user]);
 
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email, password, role) => {
     try {
-      const res = await authApi.login(email, password);
+      const res = await authApi.login(email, password, role);
       setToken(res.token);
       const u = decorate(res.user);
       setUser(u);
       return u;
     } catch (err) {
-      return null;
+      const msg =
+        err.response?.data?.message ||
+        "Invalid credentials";
+      return { ok: false, error: msg };
     }
   }, []);
 
   const signup = useCallback(async (name, email, password, role = "DRIVER") => {
     try {
       await authApi.signup({ name, email, password, role });
-      const res = await authApi.login(email, password);
+      const res = await authApi.login(email, password, role);
       setToken(res.token);
       const u = decorate(res.user);
       setUser(u);

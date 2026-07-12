@@ -1,0 +1,115 @@
+Complete Backend Prompt — Authentication & Role-Based Authorization (Spring Boot)
+Project: TransitOps — Smart Transport Operations Platform. Build the complete Authentication and Role-Based Authorization module in Spring Boot. This is the foundation module — Vehicle/Driver/Trip/Maintenance modules will be built in later steps.
+Tech Stack:
+
+Java 17+, Spring Boot 3.x
+Spring Security 6 with JWT (use jjwt library, stateless auth, no server-side sessions)
+Spring Data JPA
+MySQL as the database (not PostgreSQL)
+Maven build
+
+Roles required (RBAC):
+
+ADMIN
+FLEET_MANAGER
+DRIVER
+SAFETY_OFFICER
+FINANCIAL_ANALYST
+
+Implement as a Java enum (Role.java).
+Entity: User
+
+id (UUID, primary key)
+name
+email (unique, used as login identifier)
+password (BCrypt hashed, never returned in any API response)
+role (enum, set at signup)
+status (ACTIVE / INACTIVE)
+createdAt, updatedAt timestamps
+
+Endpoints required:
+
+POST /api/auth/signup
+
+Body: name, email, password, role
+Validate: all fields required, valid email format, password min 8 characters, role must be one of the valid enum values
+Check if email already exists in DB → if yes, return 400 with message "Email already registered"
+If email is new → hash password with BCrypt, save user to DB with the given role and status ACTIVE
+Return 201 with created user info (id, name, email, role, status — NEVER include password) and a success message
+Do NOT auto-login or return a JWT here — signup only creates the account, user must log in separately afterward
+
+
+POST /api/auth/login
+
+Body: email, password, role
+Look up user by email. If not found → return 401 "Invalid email or password"
+Verify password using BCrypt match. If it doesn't match → return 401 "Invalid email or password"
+Check if user's account status is ACTIVE. If INACTIVE → return 401 "Account is inactive"
+Verify that the role sent in the request matches the role stored in the database for this user. If it doesn't match → return 401 with message "Role mismatch. This account is not registered under the selected role."
+If everything matches → generate a JWT token containing userId, email, role as claims
+Return 200 with { token, tokenType: "Bearer", expiresIn, user: { id, name, email, role, status } }
+
+
+GET /api/auth/me
+
+Protected endpoint, requires valid JWT in Authorization: Bearer <token> header
+Returns the currently authenticated user's fresh details from DB (id, name, email, role, status)
+If token is missing/invalid/expired → return 401
+
+
+
+Security configuration required:
+
+Stateless session (JWT only, no HttpSession)
+JWT filter (OncePerRequestFilter) that validates token on every request, extracts user id + email + role from claims, verifies the user still exists in DB, and sets Spring Security context accordingly
+/api/auth/signup, /api/auth/login, and /api/health should be publicly accessible — everything else requires a valid JWT by default
+CORS: allow requests from the frontend origin(s), configurable via an environment variable (CORS_ORIGINS), not hardcoded — read this into the actual CORS configuration bean (don't just define the variable and ignore it)
+Global exception handler (@RestControllerAdvice) returning clean JSON error responses for validation errors, bad credentials, role mismatch, not found, and any unhandled exception — never expose raw stack traces
+
+Password & secrets security — CRITICAL:
+
+Use BCryptPasswordEncoder for all password hashing/verification
+Do NOT hardcode any sensitive values (DB URL, DB username, DB password, JWT secret) in application.properties. Use environment variable placeholders:
+
+propertiesspring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+jwt.secret=${JWT_SECRET}
+jwt.expiration=${JWT_EXPIRATION:86400000}
+transitops.cors.origins=${CORS_ORIGINS:http://localhost:5173}
+
+Create a .env.example file (safe to commit, no real values) showing all required variable names:
+
+DB_URL=jdbc:mysql://localhost:3306/trasit_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+DB_USERNAME=root
+DB_PASSWORD=your_password_here
+JWT_SECRET=replace_with_a_long_random_64_char_secret
+JWT_EXPIRATION=86400000
+SERVER_PORT=8001
+CORS_ORIGINS=http://localhost:5173
+
+Add/update .gitignore to ensure .env, *.env, application-local.properties are NEVER committed (but .env.example should be tracked)
+Add spring-dotenv dependency (or equivalent) so .env is auto-loaded during local development
+Include a SETUP.md explaining: copy .env.example to .env, fill in real values, create the MySQL database (trasit_db) before running, then run with mvn spring-boot:run
+
+Project structure:
+com.transitops
+├── config          (SecurityConfig)
+├── controller      (AuthController, HealthController)
+├── dto             (SignupRequest, LoginRequest, AuthResponse, UserDto, ApiError)
+├── entity          (User, Role enum, UserStatus enum)
+├── repository      (UserRepository)
+├── security        (JwtUtil, JwtAuthFilter)
+├── service         (AuthService)
+└── exception       (GlobalExceptionHandler, BadRequestException, NotFoundException)
+Deliverables:
+
+Complete pom.xml with all dependencies (Spring Web, Spring Security, Spring Data JPA, MySQL connector, JJWT, Lombok, Validation, spring-dotenv)
+All classes above, fully implemented and wired together correctly
+Make sure this full flow works end-to-end: signup (with role) → account created but NOT logged in → login (with email + password + role) → role verified against DB → JWT returned → /api/auth/me works with that JWT
+Test and confirm that wrong role at login correctly returns the role-mismatch error, and that a new user actually appears as a row in the MySQL users table after signup
+
+Do not implement Vehicle, Driver, Trip, Maintenance, or any other module yet — only Authentication and Authorization as described above.

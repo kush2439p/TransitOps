@@ -7,6 +7,7 @@ import com.transitops.dto.UserDto;
 import com.transitops.entity.User;
 import com.transitops.entity.UserStatus;
 import com.transitops.exception.BadRequestException;
+import com.transitops.exception.RoleMismatchException;
 import com.transitops.repository.UserRepository;
 import com.transitops.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,9 @@ public class AuthService {
         }
         if (user.getStatus() == UserStatus.INACTIVE) {
             throw new BadCredentialsException("Account is inactive");
+        }
+        if (req.getRole() != null && !req.getRole().equals(user.getRole())) {
+            throw new RoleMismatchException("Role mismatch. This account is not registered under the selected role.");
         }
 
         String token = jwtUtil.generateToken(user);

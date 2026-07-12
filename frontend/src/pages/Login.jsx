@@ -4,7 +4,15 @@ import { useStore } from "@/lib/store";
 import { DEMO_USERS, ROLE_LABELS } from "@/lib/mockData";
 import { defaultRouteFor } from "@/lib/rbac";
 import { toast, Toaster } from "sonner";
-import { Truck, ArrowRight, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Truck, ArrowRight, Eye, EyeOff, Loader2, ChevronDown } from "lucide-react";
+
+const ALL_ROLES = [
+  { value: "FLEET_MANAGER", label: "Fleet Manager" },
+  { value: "DRIVER", label: "Driver" },
+  { value: "SAFETY_OFFICER", label: "Safety Officer" },
+  { value: "FINANCIAL_ANALYST", label: "Financial Analyst" },
+  { value: "ADMIN", label: "Admin" },
+];
 
 export default function Login() {
   const { login, signup } = useStore();
@@ -13,6 +21,7 @@ export default function Login() {
   const [email, setEmail] = useState("manager@transitops.io");
   const [password, setPassword] = useState("demo1234");
   const [name, setName] = useState("");
+  const [role, setRole] = useState("FLEET_MANAGER");
   const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -26,19 +35,21 @@ export default function Login() {
           toast.error("Name, email, and 8+ char password are required");
           return;
         }
-        const res = await signup(name.trim(), email.trim(), password, "DRIVER");
+        const res = await signup(name.trim(), email.trim(), password, role);
         if (!res.ok) {
           toast.error(res.error || "Signup failed");
           return;
         }
-        toast.success(`Welcome, ${res.user.name}. Signed up as Driver.`);
+        toast.success(`Welcome, ${res.user.name}. Signed up as ${ROLE_LABELS[res.user.role]}.`);
         navigate(defaultRouteFor(res.user.role));
         return;
       }
-      const u = await login(email, password);
-      if (u) {
-        toast.success(`Signed in as ${ROLE_LABELS[u.role]}`);
-        navigate(defaultRouteFor(u.role));
+      const result = await login(email, password, role);
+      if (result && result.ok === false) {
+        toast.error(result.error || "Invalid credentials");
+      } else if (result) {
+        toast.success(`Signed in as ${ROLE_LABELS[result.role]}`);
+        navigate(defaultRouteFor(result.role));
       } else {
         toast.error("Invalid credentials. Try one of the demo accounts.");
       }
@@ -51,12 +62,15 @@ export default function Login() {
     if (busy) return;
     setEmail(u.email);
     setPassword(u.password);
+    setRole(u.role);
     setBusy(true);
     try {
-      const r = await login(u.email, u.password);
-      if (r) {
-        toast.success(`Signed in as ${ROLE_LABELS[r.role]}`);
-        navigate(defaultRouteFor(r.role));
+      const result = await login(u.email, u.password, u.role);
+      if (result && result.ok === false) {
+        toast.error(result.error || "Demo login failed — backend may be starting up.");
+      } else if (result) {
+        toast.success(`Signed in as ${ROLE_LABELS[result.role]}`);
+        navigate(defaultRouteFor(result.role));
       } else {
         toast.error("Demo login failed — backend may be starting up.");
       }
@@ -107,7 +121,7 @@ export default function Login() {
               </div>
               <div className="w-px h-8 bg-white/10" />
               <div>
-                <div className="font-mono-data text-2xl text-white">4</div>
+                <div className="font-mono-data text-2xl text-white">5</div>
                 <div className="uppercase tracking-widest">Roles</div>
               </div>
             </div>
@@ -158,44 +172,63 @@ export default function Login() {
                 className="mt-1.5 w-full bg-[#121212] border border-white/10 rounded-md px-4 py-3 text-white focus-yellow"
               />
             </div>
-            {(mode === "login" || mode === "signup") && (
-              <div>
-                <label className="text-xs uppercase tracking-wider text-zinc-500 flex items-center justify-between">
-                  Password
-                  {mode === "login" && (
-                    <button
-                      type="button"
-                      className="text-[#FACC15] normal-case tracking-normal text-xs hover:underline"
-                      onClick={() => toast.info("Password reset flow will be wired up with backend.")}
-                      data-testid="forgot-password-link"
-                    >
-                      Forgot password?
-                    </button>
-                  )}
-                  {mode === "signup" && (
-                    <span className="text-zinc-500 normal-case tracking-normal text-[10px]">
-                      min 8 characters
-                    </span>
-                  )}
-                </label>
-                <div className="relative mt-1.5">
-                  <input
-                    data-testid="login-password-input"
-                    type={showPw ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#121212] border border-white/10 rounded-md px-4 py-3 pr-11 text-white focus-yellow"
-                  />
+
+            {/* Role selector */}
+            <div>
+              <label className="text-xs uppercase tracking-wider text-zinc-500">Role</label>
+              <div className="relative mt-1.5">
+                <select
+                  data-testid="role-select"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full appearance-none bg-[#121212] border border-white/10 rounded-md px-4 py-3 pr-10 text-white focus-yellow cursor-pointer"
+                >
+                  {ALL_ROLES.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs uppercase tracking-wider text-zinc-500 flex items-center justify-between">
+                Password
+                {mode === "login" && (
                   <button
                     type="button"
-                    onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                    className="text-[#FACC15] normal-case tracking-normal text-xs hover:underline"
+                    onClick={() => toast.info("Password reset flow will be wired up with backend.")}
+                    data-testid="forgot-password-link"
                   >
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    Forgot password?
                   </button>
-                </div>
+                )}
+                {mode === "signup" && (
+                  <span className="text-zinc-500 normal-case tracking-normal text-[10px]">
+                    min 8 characters
+                  </span>
+                )}
+              </label>
+              <div className="relative mt-1.5">
+                <input
+                  data-testid="login-password-input"
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-[#121212] border border-white/10 rounded-md px-4 py-3 pr-11 text-white focus-yellow"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                >
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
-            )}
+            </div>
 
             <button
               type="submit"

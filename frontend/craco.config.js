@@ -21,6 +21,9 @@ function makeDevServerV5Compatible(devServerConfig) {
     ...compatibleConfig
   } = devServerConfig;
 
+  // Allow Replit's proxied preview domain
+  compatibleConfig.allowedHosts = 'all';
+
   compatibleConfig.server =
     typeof https === "object"
       ? { type: "https", options: https }

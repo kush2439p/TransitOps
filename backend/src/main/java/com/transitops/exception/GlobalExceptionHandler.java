@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
 
+import java.util.List;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -37,9 +39,14 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
     }
 
+    @ExceptionHandler(RoleMismatchException.class)
+    public ResponseEntity<ApiError> handleRoleMismatch(RoleMismatchException ex, HttpServletRequest req) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiError> handleBadCreds(BadCredentialsException ex, HttpServletRequest req) {
-        return build(HttpStatus.UNAUTHORIZED, "Invalid email or password", req, null);
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage(), req, null);
     }
 
     @ExceptionHandler(AuthenticationException.class)
